@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "dev": "npx serve app -l 3000"
+  },
+  "dependencies": {
+    "firebase": "^12.12.0"
+  }
+}

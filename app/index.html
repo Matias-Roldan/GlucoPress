@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlucoPress — Ingreso</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+</head>
+<body>
+
+<div class="auth-page">
+  <!-- Panel izquierdo decorativo -->
+  <div class="auth-panel-left">
+    <div class="auth-brand">
+      <span>💊</span> GlucoPress
+    </div>
+    <p class="auth-brand-sub">Tu salud, en un solo lugar</p>
+    <ul class="auth-features">
+      <li>❤️ Control de presión arterial</li>
+      <li>💉 Seguimiento de glucosa</li>
+      <li>📊 Gráficos y tendencias</li>
+      <li>📄 Exportar a PDF y Excel</li>
+      <li>🔒 Datos privados y seguros</li>
+    </ul>
+  </div>
+
+  <!-- Panel derecho: formularios -->
+  <div class="auth-panel-right">
+    <div class="auth-form-container">
+      <h1 class="auth-form-title">Bienvenido</h1>
+      <p class="auth-form-subtitle">Registra y monitorea tu salud personal</p>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login"    onclick="showTab('login')">Iniciar sesión</button>
+        <button class="auth-tab"        id="tab-register" onclick="showTab('register')">Registrarse</button>
+      </div>
+
+      <!-- Formulario LOGIN -->
+      <form id="form-login" novalidate>
+        <div class="auth-field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email" required>
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Contraseña</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <div class="auth-messages" id="login-messages"></div>
+        <button type="submit" class="btn btn-primary auth-btn-submit" id="btn-login">
+          <span id="btn-login-txt">Iniciar sesión</span>
+          <span id="btn-login-spin" class="spinner hidden"></span>
+        </button>
+      </form>
+
+      <!-- Formulario REGISTRO (oculto por defecto) -->
+      <form id="form-register" class="hidden" novalidate>
+        <div class="auth-field">
+          <label for="reg-nombre">Nombre completo</label>
+          <input type="text" id="reg-nombre" placeholder="Juan Pérez" autocomplete="name" required>
+        </div>
+        <div class="auth-field">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" placeholder="tu@email.com" autocomplete="email" required>
+        </div>
+        <div class="auth-field">
+          <label for="reg-password">Contraseña</label>
+          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required minlength="6">
+        </div>
+        <div class="auth-field">
+          <label for="reg-password2">Confirmar contraseña</label>
+          <input type="password" id="reg-password2" placeholder="Repite la contraseña" autocomplete="new-password" required>
+        </div>
+        <div class="auth-messages" id="register-messages"></div>
+        <button type="submit" class="btn btn-primary auth-btn-submit" id="btn-register">
+          <span id="btn-register-txt">Crear cuenta</span>
+          <span id="btn-register-spin" class="spinner hidden"></span>
+        </button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Supabase CDN (UMD — global window.supabase) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<script type="module">
+  import { supabaseClient }        from './assets/js/config/supabase.js';
+  import { login, register, getSession } from './assets/js/services/authService.js';
+
+  // ── Redirigir si ya hay sesión activa ─────────────────────
+  (async () => {
+    const session = await getSession();
+    if (session) window.location.href = 'app.html';
+  })();
+
+  // ── Cambiar tabs ──────────────────────────────────────────
+  window.showTab = function(tab) {
+    const isLogin = tab === 'login';
+    document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+    document.getElementById('form-register').classList.toggle('hidden', isLogin);
+    document.getElementById('tab-login').classList.toggle('active', isLogin);
+    document.getElementById('tab-register').classList.toggle('active', !isLogin);
+    clearMessages();
+  };
+
+  function clearMessages() {
+    document.getElementById('login-messages').innerHTML    = '';
+    document.getElementById('register-messages').innerHTML = '';
+  }
+
+  function showMsg(containerId, mensaje, tipo = 'danger') {
+    document.getElementById(containerId).innerHTML =
+      `<div class="alert alert-${tipo}"><span class="alert-icon">${tipo === 'success' ? '✓' : '⚠️'}</span><span>${mensaje}</span></div>`;
+  }
+
+  function setLoading(prefix, loading) {
+    document.getElementById(`btn-${prefix}-txt`).classList.toggle('hidden', loading);
+    document.getElementById(`btn-${prefix}-spin`).classList.toggle('hidden', !loading);
+    document.getElementById(`btn-${prefix}`).disabled = loading;
+  }
+
+  // ── LOGIN ─────────────────────────────────────────────────
+  document.getElementById('form-login').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    if (!email || !password) {
+      showMsg('login-messages', 'Completá todos los campos.');
+      return;
+    }
+
+    setLoading('login', true);
+    try {
+      await login(email, password);
+      window.location.href = 'app.html';
+    } catch (err) {
+      const msg = err.message?.includes('Invalid login credentials')
+        ? 'Email o contraseña incorrectos.'
+        : err.message || 'Error al iniciar sesión.';
+      showMsg('login-messages', msg);
+    } finally {
+      setLoading('login', false);
+    }
+  });
+
+  // ── REGISTRO ──────────────────────────────────────────────
+  document.getElementById('form-register').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nombre  = document.getElementById('reg-nombre').value.trim();
+    const email   = document.getElementById('reg-email').value.trim();
+    const pass    = document.getElementById('reg-password').value;
+    const pass2   = document.getElementById('reg-password2').value;
+
+    if (!nombre || !email || !pass || !pass2) {
+      showMsg('register-messages', 'Completá todos los campos.');
+      return;
+    }
+    if (pass.length < 6) {
+      showMsg('register-messages', 'La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (pass !== pass2) {
+      showMsg('register-messages', 'Las contraseñas no coinciden.');
+      return;
+    }
+
+    setLoading('register', true);
+    try {
+      const { user } = await register(email, pass, nombre);
+      if (user) {
+        showMsg('register-messages',
+          '¡Cuenta creada! Revisá tu email para confirmar (si está configurado) o iniciá sesión.',
+          'success'
+        );
+        setTimeout(() => showTab('login'), 2500);
+      }
+    } catch (err) {
+      const msg = err.message?.includes('already registered')
+        ? 'Ese email ya está registrado.'
+        : err.message || 'Error al crear la cuenta.';
+      showMsg('register-messages', msg);
+    } finally {
+      setLoading('register', false);
+    }
+  });
+</script>
+</body>
+</html>

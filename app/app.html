@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlucoPress — Dashboard</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+</head>
+<body>
+
+<!-- Loading overlay inicial -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner-lg"></div>
+  <span class="loading-text">Cargando...</span>
+</div>
+
+<!-- Layout principal -->
+<div class="app-layout app-layout--hidden" id="app-layout">
+
+  <!-- Overlay sidebar móvil -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ═══ SIDEBAR ════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <span class="sidebar-brand-icon">💊</span>
+        GlucoPress
+      </div>
+      <div class="sidebar-brand-sub">Seguimiento de Salud</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-nav-section">Principal</div>
+      <button type="button" class="nav-item" data-section="section-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </button>
+      <button type="button" class="nav-item" data-section="section-nueva">
+        <span class="nav-icon">➕</span> Nueva Medición
+      </button>
+
+      <div class="sidebar-nav-section">Análisis</div>
+      <button type="button" class="nav-item" data-section="section-historial">
+        <span class="nav-icon">📋</span> Historial
+      </button>
+      <button type="button" class="nav-item" data-section="section-graficos">
+        <span class="nav-icon">📈</span> Gráficos
+      </button>
+      <button type="button" class="nav-item" data-section="section-estadisticas">
+        <span class="nav-icon">📊</span> Estadísticas
+      </button>
+
+      <div class="sidebar-nav-section">Reportes</div>
+      <button type="button" class="nav-item" data-section="section-exportar">
+        <span class="nav-icon">📄</span> Exportar
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="user-avatar">?</div>
+        <div>
+          <div class="sidebar-user-name"  id="user-name">...</div>
+          <div class="sidebar-user-email" id="user-email">...</div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-logout" id="btn-logout">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ═══ CONTENIDO PRINCIPAL ═══════════════════════════════ -->
+  <div class="main-content">
+    <header class="main-header">
+      <div class="main-header-left">
+        <button type="button" class="btn-menu-toggle" id="btn-menu-toggle" aria-label="Abrir menú">☰</button>
+        <span class="main-header-title" id="header-title">Dashboard</span>
+      </div>
+      <div class="main-header-right">
+        <span class="header-date" id="header-date"></span>
+      </div>
+    </header>
+
+    <!-- ── DASHBOARD ─────────────────────────────────────── -->
+    <section class="section" id="section-dashboard">
+      <div class="section-header">
+        <h2 class="section-title">Resumen</h2>
+        <p class="section-subtitle">Últimas mediciones y estado actual</p>
+      </div>
+      <div class="overview-grid" id="overview-cards">
+        <div class="overview-card">
+          <div class="overview-card-label">Cargando datos...</div>
+        </div>
+      </div>
+      <div id="dashboard-alertas"></div>
+    </section>
+
+    <!-- ── NUEVA MEDICIÓN ────────────────────────────────── -->
+    <section class="section hidden" id="section-nueva">
+      <div class="section-header">
+        <h2 class="section-title">Nueva Medición</h2>
+        <p class="section-subtitle">Registrá tus valores de presión y glucosa</p>
+      </div>
+      <div id="form-container"></div>
+      <div id="form-success-msg" class="hidden mt-2"></div>
+    </section>
+
+    <!-- ── HISTORIAL ─────────────────────────────────────── -->
+    <section class="section hidden" id="section-historial">
+      <div class="section-header">
+        <h2 class="section-title">Historial</h2>
+        <p class="section-subtitle">Todas tus mediciones registradas</p>
+      </div>
+      <div id="historial-container"></div>
+    </section>
+
+    <!-- ── GRÁFICOS ──────────────────────────────────────── -->
+    <section class="section hidden" id="section-graficos">
+      <div class="section-header">
+        <h2 class="section-title">Gráficos</h2>
+        <p class="section-subtitle">Tendencias de tus métricas en el tiempo</p>
+      </div>
+      <div class="charts-grid" id="charts-container"></div>
+    </section>
+
+    <!-- ── ESTADÍSTICAS ──────────────────────────────────── -->
+    <section class="section hidden" id="section-estadisticas">
+      <div class="section-header">
+        <h2 class="section-title">Estadísticas</h2>
+        <p class="section-subtitle">Promedios, máximos y mínimos por métrica</p>
+      </div>
+      <div id="stats-container"></div>
+    </section>
+
+    <!-- ── EXPORTAR ──────────────────────────────────────── -->
+    <section class="section hidden" id="section-exportar">
+      <div class="section-header">
+        <h2 class="section-title">Exportar</h2>
+        <p class="section-subtitle">Descargá tus datos en PDF o Excel</p>
+      </div>
+
+      <!-- Filtros de fecha para exportar -->
+      <div class="export-filters">
+        <h4>Rango de fechas (opcional)</h4>
+        <div class="export-filters-row">
+          <div class="filtros-group">
+            <label for="export-desde">Desde</label>
+            <input type="date" id="export-desde" title="Fecha desde">
+          </div>
+          <div class="filtros-group">
+            <label for="export-hasta">Hasta</label>
+            <input type="date" id="export-hasta" title="Fecha hasta">
+          </div>
+        </div>
+      </div>
+
+      <div class="export-grid">
+        <!-- PDF -->
+        <div class="export-card">
+          <span class="export-icon">📄</span>
+          <div class="export-title">Exportar PDF</div>
+          <p class="export-desc">
+            Reporte con portada, estadísticas y gráficos embebidos, organizado por métrica.
+          </p>
+          <div id="export-pdf-msg"></div>
+          <button type="button" class="btn btn-primary" id="btn-export-pdf">
+            <span id="btn-pdf-txt">Descargar PDF</span>
+            <span id="btn-pdf-spin" class="spinner hidden"></span>
+          </button>
+        </div>
+
+        <!-- Excel -->
+        <div class="export-card">
+          <span class="export-icon">📊</span>
+          <div class="export-title">Exportar Excel</div>
+          <p class="export-desc">
+            Planilla con una hoja por métrica: fecha, hora, momento, valor, unidad y notas.
+          </p>
+          <div id="export-excel-msg"></div>
+          <button type="button" class="btn btn-outline" id="btn-export-excel">
+            <span id="btn-excel-txt">Descargar Excel</span>
+            <span id="btn-excel-spin" class="spinner hidden"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- Toast notifications -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══ LIBRERÍAS CDN ═══════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- ═══ APP PRINCIPAL ══════════════════════════════════════ -->
+<script type="module">
+import { getSession, getProfile, logout, onAuthStateChange } from './assets/js/services/authService.js';
+import { getMediciones, crearMedicion, deleteMedicion, aplanarMediciones } from './assets/js/services/medicionService.js';
+import { getTiposMetrica, getRangoMap }    from './assets/js/services/metricaService.js';
+import { exportarPDF, exportarExcel }      from './assets/js/services/reporteService.js';
+import { initRouter, navigate }            from './assets/js/utils/router.js';
+import { initFormulario }                  from './assets/js/components/formulario.js';
+import { initHistorial, actualizarHistorial } from './assets/js/components/historial.js';
+import { renderGraficos, getChartCanvases, destroyAllCharts } from './assets/js/components/graficos.js';
+import { calcularEstadisticas, renderEstadisticas } from './assets/js/components/estadisticas.js';
+import { mostrarAlertas }                  from './assets/js/components/alertas.js';
+import { formatearFecha, formatearNumero } from './assets/js/utils/formatters.js';
+import { logError }                        from './assets/js/services/errorService.js';
+import { SECTIONS }                        from './assets/js/config/constants.js';
+
+// ── Estado global ──────────────────────────────────────────
+let _session       = null;
+let _perfil        = null;
+let _tiposMetrica  = [];
+let _rangoMap      = {};
+let _mediciones    = [];
+
+// ── Toast helper ──────────────────────────────────────────
+function toast(msg, tipo = 'success') {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast toast-${tipo}`;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ── Actualizar header date ─────────────────────────────────
+function updateHeaderDate() {
+  const el = document.getElementById('header-date');
+  if (el) {
+    el.textContent = new Date().toLocaleDateString('es-AR', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+}
+
+// ── Cargar datos del usuario ──────────────────────────────
+function renderUserInfo(perfil, session) {
+  const nombre = perfil?.nombre || session?.user?.email?.split('@')[0] || 'Usuario';
+  document.getElementById('user-name').textContent  = nombre;
+  document.getElementById('user-email').textContent = session?.user?.email || '';
+  document.getElementById('user-avatar').textContent = nombre.charAt(0).toUpperCase();
+}
+
+// ── Sección Dashboard: overview cards ────────────────────
+function renderDashboard() {
+  const grid    = document.getElementById('overview-cards');
+  const alertas = document.getElementById('dashboard-alertas');
+  if (!grid) return;
+
+  const filas = aplanarMediciones(_mediciones);
+  if (filas.length === 0) {
+    grid.innerHTML = `<div class="overview-card">
+      <div class="overview-card-label">Sin datos aún</div>
+      <div class="overview-card-value" style="font-size:1rem;color:var(--color-muted)">
+        Registrá tu primera medición
+      </div>
+    </div>`;
+    if (alertas) alertas.innerHTML = '';
+    return;
+  }
+
+  // Última medición por tipo
+  const cards = _tiposMetrica.map(tipo => {
+    const datos = filas.filter(f => f.tipo_metrica_id === tipo.id);
+    if (datos.length === 0) return '';
+    const ultimo = datos[0]; // ya ordenados desc
+    const rango  = _rangoMap[tipo.id];
+    let trendCls = '';
+    let trendTxt = '';
+    if (rango) {
+      const v = parseFloat(ultimo.valor);
+      if (v < rango.valor_minimo_normal)      { trendCls='trend-low';  trendTxt='Bajo'; }
+      else if (v > rango.valor_maximo_normal) { trendCls='trend-high'; trendTxt='Alto'; }
+      else                                    { trendCls='trend-ok';   trendTxt='Normal'; }
+    }
+    return `<div class="overview-card">
+      <div class="overview-card-label">${tipo.etiqueta}</div>
+      <div class="overview-card-value">${formatearNumero(ultimo.valor)}</div>
+      <div class="overview-card-unit">${tipo.unidad} · ${formatearFecha(ultimo.fecha)}</div>
+      ${trendTxt ? `<span class="overview-card-trend ${trendCls}">${trendTxt}</span>` : ''}
+    </div>`;
+  }).join('');
+  grid.innerHTML = cards || '<div class="overview-card"><div class="overview-card-label">Sin datos</div></div>';
+
+  // Alertas del último set de mediciones
+  if (alertas && _mediciones.length > 0) {
+    const ultimaMedicion = _mediciones[0];
+    const valores = {};
+    (ultimaMedicion.medicion_detalle || []).forEach(d => { valores[d.tipo_metrica_id] = d.valor; });
+    mostrarAlertas(alertas, valores, _tiposMetrica, _rangoMap);
+  }
+}
+
+// ── Inicialización principal ──────────────────────────────
+async function init() {
+  try {
+    _session = await getSession();
+    if (!_session) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // Cargar datos en paralelo
+    [_tiposMetrica, _rangoMap, _perfil, _mediciones] = await Promise.all([
+      getTiposMetrica(),
+      getRangoMap(),
+      getProfile(),
+      getMediciones(_session.user.id),
+    ]);
+
+    // Ocultar loading, mostrar app
+    document.getElementById('loading-overlay').classList.add('hidden');
+    document.getElementById('app-layout').classList.remove('app-layout--hidden');
+
+    renderUserInfo(_perfil, _session);
+    updateHeaderDate();
+
+    // ── Router ────────────────────────────────────────────
+    initRouter((sectionId) => {
+      const titles = {
+        [SECTIONS.DASHBOARD]:    'Dashboard',
+        [SECTIONS.NUEVA]:        'Nueva Medición',
+        [SECTIONS.HISTORIAL]:    'Historial',
+        [SECTIONS.GRAFICOS]:     'Gráficos',
+        [SECTIONS.ESTADISTICAS]: 'Estadísticas',
+        [SECTIONS.EXPORTAR]:     'Exportar',
+      };
+      document.getElementById('header-title').textContent = titles[sectionId] || '';
+      onSectionChange(sectionId);
+    });
+
+    // ── Formulario ────────────────────────────────────────
+    initFormulario(
+      document.getElementById('form-container'),
+      _tiposMetrica,
+      _rangoMap,
+      async (datos) => {
+        await crearMedicion(datos, _session.user.id);
+        _mediciones = await getMediciones(_session.user.id);
+        toast('Medición guardada correctamente ✓');
+        renderDashboard();
+      }
+    );
+
+    // ── Historial ─────────────────────────────────────────
+    initHistorial(
+      document.getElementById('historial-container'),
+      _mediciones, _rangoMap, _tiposMetrica,
+      async (id) => {
+        await deleteMedicion(id, _session.user.id);
+        _mediciones = _mediciones.filter(m => m.id !== id);
+        toast('Medición eliminada.', 'success');
+        renderDashboard();
+      }
+    );
+
+    renderDashboard();
+
+  } catch (err) {
+    console.error('Error en init:', err);
+    await logError(err.message, 'app.init', _session?.user?.id);
+    document.getElementById('loading-overlay').innerHTML =
+      `<div style="text-align:center;padding:2rem">
+        <p style="color:#b91c1c;font-size:1.1rem">Error al cargar la aplicación</p>
+        <p style="color:#64748b;margin-top:0.5rem">${err.message}</p>
+        <button onclick="location.reload()" class="btn btn-primary" style="margin-top:1rem">Reintentar</button>
+      </div>`;
+  }
+}
+
+// ── Cambio de sección (carga lazy) ───────────────────────
+function onSectionChange(sectionId) {
+  const filas = aplanarMediciones(_mediciones);
+  switch (sectionId) {
+    case SECTIONS.GRAFICOS:
+      destroyAllCharts();
+      renderGraficos(
+        document.getElementById('charts-container'),
+        filas, _rangoMap, _tiposMetrica
+      );
+      break;
+    case SECTIONS.ESTADISTICAS: {
+      const est = calcularEstadisticas(filas, _tiposMetrica);
+      renderEstadisticas(
+        document.getElementById('stats-container'),
+        est, _rangoMap, _tiposMetrica
+      );
+      break;
+    }
+    case SECTIONS.HISTORIAL:
+      actualizarHistorial(_mediciones);
+      break;
+    case SECTIONS.DASHBOARD:
+      renderDashboard();
+      break;
+  }
+}
+
+// ── Logout ────────────────────────────────────────────────
+document.getElementById('btn-logout').addEventListener('click', async () => {
+  await logout();
+  window.location.href = 'index.html';
+});
+
+// ── Menú hamburguesa (mobile) ─────────────────────────────
+const btnMenu   = document.getElementById('btn-menu-toggle');
+const sidebar   = document.getElementById('sidebar');
+const overlay   = document.getElementById('sidebar-overlay');
+btnMenu.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('visible');
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('visible');
+});
+
+// ── Exportar PDF ──────────────────────────────────────────
+document.getElementById('btn-export-pdf').addEventListener('click', async () => {
+  const btnTxt  = document.getElementById('btn-pdf-txt');
+  const btnSpin = document.getElementById('btn-pdf-spin');
+  const btn     = document.getElementById('btn-export-pdf');
+  const msgEl   = document.getElementById('export-pdf-msg');
+  msgEl.innerHTML = '';
+  btnTxt.classList.add('hidden');
+  btnSpin.classList.remove('hidden');
+  btn.disabled = true;
+  try {
+    const fechaDesde = document.getElementById('export-desde').value;
+    const fechaHasta = document.getElementById('export-hasta').value;
+    let meds = _mediciones;
+    if (fechaDesde) meds = meds.filter(m => m.fecha >= fechaDesde);
+    if (fechaHasta) meds = meds.filter(m => m.fecha <= fechaHasta);
+
+    const filas = aplanarMediciones(meds);
+    const est   = calcularEstadisticas(filas, _tiposMetrica);
+
+    // Renderizar gráficos temporalmente en un contenedor oculto para capturar canvas
+    const tmpContainer = document.createElement('div');
+    tmpContainer.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:640px;';
+    document.body.appendChild(tmpContainer);
+
+    renderGraficos(tmpContainer, filas, _rangoMap, _tiposMetrica);
+    // Esperar un tick para que Chart.js termine de dibujar
+    await new Promise(r => setTimeout(r, 350));
+    const canvases = getChartCanvases();
+
+    await exportarPDF({
+      perfil:        _perfil,
+      mediciones:    filas,
+      estadisticas:  est,
+      rangoMap:      _rangoMap,
+      tiposMetrica:  _tiposMetrica,
+      chartCanvases: canvases,
+      fechaDesde,
+      fechaHasta,
+    });
+    destroyAllCharts();
+    document.body.removeChild(tmpContainer);
+    toast('PDF descargado correctamente ✓');
+  } catch (err) {
+    msgEl.innerHTML = `<div class="alert alert-danger"><span class="alert-icon">⚠️</span> ${err.message}</div>`;
+    await logError(err.message, 'app.exportPDF', _session?.user?.id);
+  } finally {
+    btnTxt.classList.remove('hidden');
+    btnSpin.classList.add('hidden');
+    btn.disabled = false;
+  }
+});
+
+// ── Exportar Excel ────────────────────────────────────────
+document.getElementById('btn-export-excel').addEventListener('click', async () => {
+  const btnTxt  = document.getElementById('btn-excel-txt');
+  const btnSpin = document.getElementById('btn-excel-spin');
+  const btn     = document.getElementById('btn-export-excel');
+  const msgEl   = document.getElementById('export-excel-msg');
+  msgEl.innerHTML = '';
+  btnTxt.classList.add('hidden');
+  btnSpin.classList.remove('hidden');
+  btn.disabled = true;
+  try {
+    const fechaDesde = document.getElementById('export-desde').value;
+    const fechaHasta = document.getElementById('export-hasta').value;
+    let meds = _mediciones;
+    if (fechaDesde) meds = meds.filter(m => m.fecha >= fechaDesde);
+    if (fechaHasta) meds = meds.filter(m => m.fecha <= fechaHasta);
+
+    await exportarExcel({
+      mediciones:  aplanarMediciones(meds),
+      tiposMetrica:_tiposMetrica,
+    });
+    toast('Excel descargado correctamente ✓');
+  } catch (err) {
+    msgEl.innerHTML = `<div class="alert alert-danger"><span class="alert-icon">⚠️</span> ${err.message}</div>`;
+    await logError(err.message, 'app.exportExcel', _session?.user?.id);
+  } finally {
+    btnTxt.classList.remove('hidden');
+    btnSpin.classList.add('hidden');
+    btn.disabled = false;
+  }
+});
+
+// ── Escuchar cambios de auth (ej: token expirado) ─────────
+onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') window.location.href = 'index.html';
+});
+
+// ── Arrancar ──────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
