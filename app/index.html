@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GlucoPress — Ingreso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="assets/css/main.css">
   <link rel="stylesheet" href="assets/css/auth.css">
 </head>
@@ -12,16 +14,14 @@
 <div class="auth-page">
   <!-- Panel izquierdo decorativo -->
   <div class="auth-panel-left">
-    <div class="auth-brand">
-      <span>💊</span> GlucoPress
-    </div>
+    <div class="auth-brand">GlucoPress</div>
     <p class="auth-brand-sub">Tu salud, en un solo lugar</p>
     <ul class="auth-features">
-      <li>❤️ Control de presión arterial</li>
-      <li>💉 Seguimiento de glucosa</li>
-      <li>📊 Gráficos y tendencias</li>
-      <li>📄 Exportar a PDF y Excel</li>
-      <li>🔒 Datos privados y seguros</li>
+      <li><span class="auth-feature-dot"></span>Control de presión arterial</li>
+      <li><span class="auth-feature-dot"></span>Seguimiento de glucosa</li>
+      <li><span class="auth-feature-dot"></span>Gráficos y tendencias</li>
+      <li><span class="auth-feature-dot"></span>Exportar a PDF y Excel</li>
+      <li><span class="auth-feature-dot"></span>Datos privados y seguros</li>
     </ul>
   </div>
 
@@ -48,7 +48,7 @@
           <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
         </div>
         <div class="auth-messages" id="login-messages"></div>
-        <button type="submit" class="btn btn-primary auth-btn-submit" id="btn-login">
+        <button type="submit" class="auth-btn-submit" id="btn-login">
           <span id="btn-login-txt">Iniciar sesión</span>
           <span id="btn-login-spin" class="spinner hidden"></span>
         </button>
@@ -73,7 +73,7 @@
           <input type="password" id="reg-password2" placeholder="Repite la contraseña" autocomplete="new-password" required>
         </div>
         <div class="auth-messages" id="register-messages"></div>
-        <button type="submit" class="btn btn-primary auth-btn-submit" id="btn-register">
+        <button type="submit" class="auth-btn-submit" id="btn-register">
           <span id="btn-register-txt">Crear cuenta</span>
           <span id="btn-register-spin" class="spinner hidden"></span>
         </button>
@@ -113,7 +113,7 @@
 
   function showMsg(containerId, mensaje, tipo = 'danger') {
     document.getElementById(containerId).innerHTML =
-      `<div class="alert alert-${tipo}"><span class="alert-icon">${tipo === 'success' ? '✓' : '⚠️'}</span><span>${mensaje}</span></div>`;
+      `<div class="alert alert-${tipo}"><span class="alert-icon">${tipo === 'success' ? '✓' : '⚠'}</span><span>${mensaje}</span></div>`;
   }
 
   function setLoading(prefix, loading) {
